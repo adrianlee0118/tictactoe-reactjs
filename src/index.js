@@ -157,8 +157,7 @@ import './index.css';
     return null;
   }
   
-  // ========================================
-  
+  // Driver code
   ReactDOM.render(
     <Game />,
     document.getElementById('root')
