@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
 
@@ -53,6 +53,56 @@ const Board = ({ squares, onClick }) => {
   );
 };
 
+const Game = () => {
+  const [history, setHistory] = useState([{ squares: Array(9).fill(null) }]);
+  const [stepNumber, setStepNumber] = useState(0);
+  const [xIsNext, setXIsNext] = useState(true);
+
+  const handleClick = (i) => {
+    const hist = history.slice(0, stepNumber + 1);
+    const curr = hist[hist.length - 1];
+    const squares = curr.squares.slice();
+    if (calculateWinner(squares) || squares[i]) return;
+    squares[i] = xIsNext ? "X" : "O";
+    setHistory(hist.concat([{ squares: squares }]));
+    setStepNumber(hist.length);
+    setXIsNext(!xIsNext);
+  };
+
+  const jumpTo = (step) => {
+    setStepNumber(step);
+    setXIsNext(step % 2 === 0);
+  };
+
+  return (
+    <div className="game">
+      <div className="game-board">
+        <Board
+          squares={history[stepNumber].squares}
+          onClick={(i) => handleClick(i)}
+        />
+      </div>
+      <div className="game-info">
+        <div>
+          {calculateWinner(history[stepNumber].squares)
+            ? "Winner: " + calculateWinner(history[stepNumber].squares)
+            : "Next player: " + (xIsNext ? "X" : "O")}
+        </div>
+        <ol>
+          {history.map((step, move) => (
+            <li key={move}>
+              <button onClick={() => jumpTo(move)}>
+                {move ? "Go to move #" + move : "Go to game start"}
+              </button>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+};
+
+/*
 class Game extends React.Component {
   constructor(props) {
     super(props);
@@ -130,6 +180,7 @@ class Game extends React.Component {
     );
   }
 }
+*/
 
 // ========================================
 
