@@ -4,8 +4,13 @@ import classNames from "classnames";
 import Toggle from "react-toggle";
 import "./index.css";
 
-const Square = ({ value, onClick }) => (
-  <button className="square" onClick={onClick}>
+const Square = ({ value, onClick, winsquare }) => (
+  <button
+    className={classNames("square", {
+      winsquare: winsquare === true,
+    })}
+    onClick={onClick}
+  >
     {value}
   </button>
 );
@@ -30,10 +35,36 @@ const calculateWinner = (squares) => {
   return null;
 };
 
-const Board = ({ squares, onClick }) => {
+const getWinSquares = (squares) => {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return [a, b, c];
+    }
+  }
+  return [];
+};
+
+const Board = ({ squares, onClick, winsquares }) => {
   const renderSquare = (i) => {
-    console.log("squares in Board: " + squares);
-    return <Square value={squares[i]} onClick={() => onClick(i)} />;
+    //console.log("squares in Board: " + squares);
+    return (
+      <Square
+        value={squares[i]}
+        onClick={() => onClick(i)}
+        winsquare={winsquares.includes(parseInt(i))}
+      />
+    );
   };
   return (
     <div>
@@ -41,9 +72,11 @@ const Board = ({ squares, onClick }) => {
         [0, 1, 2],
         [3, 4, 5],
         [6, 7, 8],
-      ].map((row) => {
+      ].map((row, idx) => {
         return (
-          <div className="board-row">{row.map((i) => renderSquare(i))}</div>
+          <div key={idx} className="board-row">
+            {row.map((i) => renderSquare(i))}
+          </div>
         );
       })}
     </div>
@@ -124,6 +157,7 @@ const Game = () => {
         <Board
           squares={state.history[state.stepNumber].squares}
           onClick={(i) => handleClick(i)}
+          winsquares={getWinSquares(state.history[state.stepNumber].squares)}
         />
       </div>
       <div className="game-info">
@@ -131,6 +165,8 @@ const Game = () => {
           {calculateWinner(state.history[state.stepNumber].squares)
             ? "Winner: " +
               calculateWinner(state.history[state.stepNumber].squares)
+            : state.stepNumber === 9
+            ? "Draw"
             : "Next player: " + (state.xIsNext ? "X" : "O")}
         </div>
         <ul>
