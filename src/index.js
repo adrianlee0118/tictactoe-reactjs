@@ -1,6 +1,7 @@
 import React, { useReducer } from "react";
 import ReactDOM from "react-dom";
 import classNames from "classnames";
+import Toggle from "react-toggle";
 import "./index.css";
 
 const Square = ({ value, onClick }) => (
@@ -64,6 +65,11 @@ const gameReducer = (state, action) => {
         stepNumber: action.step,
         xIsNext: action.step % 2 === 0,
       };
+    case "TOGGLE":
+      return {
+        ...state,
+        reverseToggle: !state.reverseToggle,
+      };
     default:
       return {
         ...state,
@@ -73,9 +79,12 @@ const gameReducer = (state, action) => {
 
 const Game = () => {
   const [state, dispatch] = useReducer(gameReducer, {
-    history: [{ squares: Array(9).fill(null), moveI: null, moveJ: null }],
+    history: [
+      { squares: Array(9).fill(null), moveI: null, moveJ: null, moveNum: 0 },
+    ],
     stepNumber: 0,
     xIsNext: true,
+    reverseToggle: false,
   });
 
   const handleClick = (i) => {
@@ -88,7 +97,14 @@ const Game = () => {
     const moveY = i < 3 ? 1 : i >= 6 ? 3 : 2;
     dispatch({
       type: "HANDLE_CLICK",
-      history: hist.concat([{ squares: squares, moveI: moveX, moveJ: moveY }]),
+      history: hist.concat([
+        {
+          squares: squares,
+          moveI: moveX,
+          moveJ: moveY,
+          moveNum: curr.moveNum + 1,
+        },
+      ]),
       stepNumber: hist.length,
       xIsNext: !state.xIsNext,
     });
@@ -96,6 +112,10 @@ const Game = () => {
 
   const jumpTo = (step) => {
     dispatch({ type: "JUMP_TO", step: step });
+  };
+
+  const onToggle = () => {
+    dispatch({ type: "TOGGLE" });
   };
 
   return (
@@ -113,27 +133,35 @@ const Game = () => {
               calculateWinner(state.history[state.stepNumber].squares)
             : "Next player: " + (state.xIsNext ? "X" : "O")}
         </div>
-        <ol>
+        <ul>
           {
             //map: First arg is value of element, second arg is index, third is array itself according to MDN
-            state.history.map((step, move) => (
+            (state.reverseToggle
+              ? [...state.history].reverse()
+              : state.history
+            ).map((step, move) => (
               <li key={move}>
                 <button
-                  onClick={() => jumpTo(move)}
+                  onClick={() => jumpTo(step.moveNum)}
                   className={classNames({
-                    "button-active": move === state.stepNumber,
+                    "button-active": step.moveNum === state.stepNumber,
                   })}
                 >
-                  {move
-                    ? `Go to move#${move} by ${
-                        move % 2 === 0 ? "O" : "X"
+                  {step.moveNum
+                    ? `Go to move#${step.moveNum} by ${
+                        step.moveNum % 2 === 0 ? "O" : "X"
                       } at (${step.moveI},${step.moveJ})`
                     : "Go to game start"}
                 </button>
               </li>
             ))
           }
-        </ol>
+        </ul>
+        <br />
+        <Toggle defaultChecked={state.reverseToggle} onChange={onToggle} />
+        <label style={{ paddingLeft: "10px" }}>
+          Move List in Reverse Order
+        </label>
       </div>
     </div>
   );
