@@ -120,6 +120,7 @@ const Game = () => {
     reverseToggle: false,
   });
 
+  //TODO: move handleClick logic into reducer, create winner state in Game so that calculate winner doesn't need to be called so many times and return object that includes win squares to stop multiple traversals
   const handleClick = (i) => {
     const hist = state.history.slice(0, state.stepNumber + 1);
     const curr = hist[hist.length - 1];
