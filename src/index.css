@@ -48,3 +48,8 @@ body {
   .game-info {
     margin-left: 20px;
   }
+    
+  .button-active {
+    border-radius: 0;
+    font-weight : bold ;
+  }
