@@ -86,11 +86,25 @@ const Board = ({ squares, onClick, winsquares }) => {
 const gameReducer = (state, action) => {
   switch (action.type) {
     case "HANDLE_CLICK":
+      const hist = state.history.slice(0, state.stepNumber + 1);
+      const curr = hist[hist.length - 1];
+      const squares = curr.squares.slice();
+      if (calculateWinner(squares) || squares[action.i]) return state;
+      squares[action.i] = state.xIsNext ? "X" : "O";
+      const moveX = (action.i % 3) + 1;
+      const moveY = action.i < 3 ? 1 : action.i >= 6 ? 3 : 2;
       return {
         ...state,
-        history: action.history,
-        stepNumber: action.stepNumber,
-        xIsNext: action.xIsNext,
+        history: hist.concat([
+          {
+            squares: squares,
+            moveI: moveX,
+            moveJ: moveY,
+            moveNum: curr.moveNum + 1,
+          },
+        ]),
+        stepNumber: hist.length,
+        xIsNext: !state.xIsNext,
       };
     case "JUMP_TO":
       return {
@@ -120,28 +134,8 @@ const Game = () => {
     reverseToggle: false,
   });
 
-  //TODO: move handleClick logic into reducer, create winner state in Game so that calculate winner doesn't need to be called so many times and return object that includes win squares to stop multiple traversals
   const handleClick = (i) => {
-    const hist = state.history.slice(0, state.stepNumber + 1);
-    const curr = hist[hist.length - 1];
-    const squares = curr.squares.slice();
-    if (calculateWinner(squares) || squares[i]) return;
-    squares[i] = state.xIsNext ? "X" : "O";
-    const moveX = (i % 3) + 1;
-    const moveY = i < 3 ? 1 : i >= 6 ? 3 : 2;
-    dispatch({
-      type: "HANDLE_CLICK",
-      history: hist.concat([
-        {
-          squares: squares,
-          moveI: moveX,
-          moveJ: moveY,
-          moveNum: curr.moveNum + 1,
-        },
-      ]),
-      stepNumber: hist.length,
-      xIsNext: !state.xIsNext,
-    });
+    dispatch({ type: "HANDLE_CLICK", i: i });
   };
 
   const jumpTo = (step) => {
@@ -203,58 +197,6 @@ const Game = () => {
     </div>
   );
 };
-
-/*
-const Game = () => {
-  const [history, setHistory] = useState([{ squares: Array(9).fill(null) }]);
-  const [stepNumber, setStepNumber] = useState(0);
-  const [xIsNext, setXIsNext] = useState(true);
-
-  const handleClick = (i) => {
-    const hist = history.slice(0, stepNumber + 1);
-    const curr = hist[hist.length - 1];
-    const squares = curr.squares.slice();
-    console.log("squares created: " + squares);
-    if (calculateWinner(squares) || squares[i]) return;
-    squares[i] = xIsNext ? "X" : "O";
-    setHistory(hist.concat([{ squares: squares }]));
-    setStepNumber(hist.length);
-    setXIsNext(!xIsNext);
-  };
-
-  const jumpTo = (step) => {
-    setStepNumber(step);
-    setXIsNext(step % 2 === 0);
-  };
-
-  return (
-    <div className="game">
-      <div className="game-board">
-        <Board
-          squares={history[stepNumber].squares}
-          onClick={(i) => handleClick(i)}
-        />
-      </div>
-      <div className="game-info">
-        <div>
-          {calculateWinner(history[stepNumber].squares)
-            ? "Winner: " + calculateWinner(history[stepNumber].squares)
-            : "Next player: " + (xIsNext ? "X" : "O")}
-        </div>
-        <ol>
-          {history.map((step, move) => (
-            <li key={move}>
-              <button onClick={() => jumpTo(move)}>
-                {move ? "Go to move #" + move : "Go to game start"}
-              </button>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </div>
-  );
-};
-*/
 
 // ========================================
 
