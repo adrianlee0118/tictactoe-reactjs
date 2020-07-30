@@ -29,35 +29,14 @@ const calculateWinner = (squares) => {
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
+      return { winner: squares[a], winsquares: [a, b, c] };
     }
   }
-  return null;
-};
-
-const getWinSquares = (squares) => {
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
-  for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i];
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return [a, b, c];
-    }
-  }
-  return [];
+  return { winner: null, winsquares: [] };
 };
 
 const Board = ({ squares, onClick, winsquares }) => {
   const renderSquare = (i) => {
-    //console.log("squares in Board: " + squares);
     return (
       <Square
         value={squares[i]}
@@ -89,8 +68,9 @@ const gameReducer = (state, action) => {
       const hist = state.history.slice(0, state.stepNumber + 1);
       const curr = hist[hist.length - 1];
       const squares = curr.squares.slice();
-      if (calculateWinner(squares) || squares[action.i]) return state;
+      if (curr.winner || squares[action.i]) return state;
       squares[action.i] = state.xIsNext ? "X" : "O";
+      const newWinState = calculateWinner(squares);
       const moveX = (action.i % 3) + 1;
       const moveY = action.i < 3 ? 1 : action.i >= 6 ? 3 : 2;
       return {
@@ -101,6 +81,8 @@ const gameReducer = (state, action) => {
             moveI: moveX,
             moveJ: moveY,
             moveNum: curr.moveNum + 1,
+            winner: newWinState.winner,
+            winsquares: newWinState.winsquares,
           },
         ]),
         stepNumber: hist.length,
@@ -127,14 +109,20 @@ const gameReducer = (state, action) => {
 const Game = () => {
   const [state, dispatch] = useReducer(gameReducer, {
     history: [
-      { squares: Array(9).fill(null), moveI: null, moveJ: null, moveNum: 0 },
+      {
+        squares: Array(9).fill(null),
+        moveI: null,
+        moveJ: null,
+        moveNum: 0,
+        winner: null,
+        winsquares: [],
+      },
     ],
     stepNumber: 0,
     xIsNext: true,
     reverseToggle: false,
   });
 
-  // TODO: create winner state in Game so that calculate winner doesn't need to be called so many times and return object that includes win squares to stop multiple traversals
   const handleClick = (i) => {
     dispatch({ type: "HANDLE_CLICK", i: i });
   };
@@ -153,41 +141,37 @@ const Game = () => {
         <Board
           squares={state.history[state.stepNumber].squares}
           onClick={(i) => handleClick(i)}
-          winsquares={getWinSquares(state.history[state.stepNumber].squares)}
+          winsquares={state.history[state.stepNumber].winsquares}
         />
       </div>
       <div className="game-info">
         <div>
-          {calculateWinner(state.history[state.stepNumber].squares)
-            ? "Winner: " +
-              calculateWinner(state.history[state.stepNumber].squares)
+          {state.history[state.stepNumber].winner
+            ? "Winner: " + state.history[state.stepNumber].winner
             : state.stepNumber === 9
             ? "Draw"
             : "Next player: " + (state.xIsNext ? "X" : "O")}
         </div>
         <ul>
-          {
-            //map: First arg is value of element, second arg is index, third is array itself according to MDN
-            (state.reverseToggle
-              ? [...state.history].reverse()
-              : state.history
-            ).map((step, move) => (
-              <li key={move}>
-                <button
-                  onClick={() => jumpTo(step.moveNum)}
-                  className={classNames({
-                    "button-active": step.moveNum === state.stepNumber,
-                  })}
-                >
-                  {step.moveNum
-                    ? `Go to move#${step.moveNum} by ${
-                        step.moveNum % 2 === 0 ? "O" : "X"
-                      } at (${step.moveI},${step.moveJ})`
-                    : "Go to game start"}
-                </button>
-              </li>
-            ))
-          }
+          {(state.reverseToggle
+            ? [...state.history].reverse()
+            : state.history
+          ).map((step, move) => (
+            <li key={move}>
+              <button
+                onClick={() => jumpTo(step.moveNum)}
+                className={classNames({
+                  "button-active": step.moveNum === state.stepNumber,
+                })}
+              >
+                {step.moveNum
+                  ? `Go to move#${step.moveNum} by ${
+                      step.moveNum % 2 === 0 ? "O" : "X"
+                    } at (${step.moveI},${step.moveJ})`
+                  : "Go to game start"}
+              </button>
+            </li>
+          ))}
         </ul>
         <br />
         <Toggle defaultChecked={state.reverseToggle} onChange={onToggle} />
