@@ -4,6 +4,10 @@ import classNames from "classnames";
 import Toggle from "react-toggle";
 import "./index.css";
 
+const HANDLE_CLICK = "HANDLE_CLICK";
+const JUMP_TO = "JUMP_TO";
+const TOGGLE = "TOGGLE";
+
 const Square = ({ value, onClick, winsquare }) => (
   <button
     className={classNames("square", {
@@ -64,7 +68,7 @@ const Board = ({ squares, onClick, winsquares }) => {
 
 const gameReducer = (state, action) => {
   switch (action.type) {
-    case "HANDLE_CLICK":
+    case HANDLE_CLICK:
       const hist = state.history.slice(0, state.stepNumber + 1);
       const curr = hist[hist.length - 1];
       const squares = curr.squares.slice();
@@ -88,13 +92,13 @@ const gameReducer = (state, action) => {
         stepNumber: hist.length,
         xIsNext: !state.xIsNext,
       };
-    case "JUMP_TO":
+    case JUMP_TO:
       return {
         ...state,
         stepNumber: action.step,
         xIsNext: action.step % 2 === 0,
       };
-    case "TOGGLE":
+    case TOGGLE:
       return {
         ...state,
         reverseToggle: !state.reverseToggle,
@@ -123,24 +127,12 @@ const Game = () => {
     reverseToggle: false,
   });
 
-  const handleClick = (i) => {
-    dispatch({ type: "HANDLE_CLICK", i: i });
-  };
-
-  const jumpTo = (step) => {
-    dispatch({ type: "JUMP_TO", step: step });
-  };
-
-  const onToggle = () => {
-    dispatch({ type: "TOGGLE" });
-  };
-
   return (
     <div className="game">
       <div className="game-board">
         <Board
           squares={state.history[state.stepNumber].squares}
-          onClick={(i) => handleClick(i)}
+          onClick={(i) => dispatch({ type: HANDLE_CLICK, i: i })}
           winsquares={state.history[state.stepNumber].winsquares}
         />
       </div>
@@ -159,7 +151,7 @@ const Game = () => {
           ).map((step, move) => (
             <li key={move}>
               <button
-                onClick={() => jumpTo(step.moveNum)}
+                onClick={() => dispatch({ type: JUMP_TO, step: step.moveNum })}
                 className={classNames({
                   "button-active": step.moveNum === state.stepNumber,
                 })}
@@ -174,7 +166,10 @@ const Game = () => {
           ))}
         </ul>
         <br />
-        <Toggle defaultChecked={state.reverseToggle} onChange={onToggle} />
+        <Toggle
+          defaultChecked={state.reverseToggle}
+          onChange={() => dispatch({ type: TOGGLE })}
+        />
         <label style={{ paddingLeft: "10px" }}>
           Move List in Reverse Order
         </label>
