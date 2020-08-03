@@ -11,7 +11,7 @@ Optimizations and other notable differences from the React website final product
 - When no one wins, a message about the result being a draw is displayed
 - The calculateWinner function has been modified to return an object containing both the identify of the winner and the winning squares, and this information has been added to the App state to avoid calculateWinner being called too many times
 
-## Install
+## Install and Run
 Clone the repository, then, in the directory, run:
 ```
 npm install
