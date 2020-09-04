@@ -1,6 +1,8 @@
 ## About
 A simple tic tac toe game built initially from the React website tutorial bootstrapped with the Create React App toolchain. 
 
+![demo](https://github.com/adrianlee0118/tictactoe-reactjs/blob/master/assets/demo.gif)
+
 Optimizations and other notable differences from the React website final product include:
 - Project has been completely re-written to utilize only function components rather than classes with the useReducer hook as is the modern standard for managing complex state--for reference a useState hook version is also in the archives file
 - Move list displays column, row, move number and player ID, and the selected button appears in bold
